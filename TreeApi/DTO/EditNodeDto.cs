@@ -2,7 +2,7 @@
 
 public class EditNodeDto
 {
-    public string? Name { get; set; }
+    public string? NewName { get; set; }
     public Guid? ParentNodeId { get; set; }
     public Guid Id { get; set; }
 }

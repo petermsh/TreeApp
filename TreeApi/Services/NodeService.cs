@@ -8,17 +8,19 @@ namespace TreeApp.Services;
 
 public class NodeService(TreeDbContext dbContext) : INodeService
 {
-    public async Task<List<NodeDto>> GetNodes()
+    public async Task<List<NodeDto>> GetNodes(bool isReversed)
     {
         var nodes = await dbContext.Nodes
-            .Include(n=>n.Childrens)
+            .Include(n => n.Childrens)
             .ToListAsync();
 
         var rootNodes = nodes.Where(node => node.ParentNodeId == null).ToList();
 
-        var rootNodesDto = rootNodes.Select(rootNode => MapNodeToDto(rootNode)).ToList();
+        var rootNodesDto = rootNodes
+            .Select(rootNode => MapNodeToDto(rootNode, isReversed))
+            .ToList();
 
-        return rootNodesDto;
+        return isReversed ? rootNodesDto.OrderByDescending(node => node.Name).ToList() : rootNodesDto.OrderBy(node => node.Name).ToList();
     }
 
     public async Task AddNode(AddNodeDto addNodeDto)
@@ -46,7 +48,7 @@ public class NodeService(TreeDbContext dbContext) : INodeService
         if (node is null)
             throw new Exception("node is null");
 
-        node.Name = editNodeDto.Name ?? node.Name;
+        node.Name = editNodeDto.NewName ?? node.Name;
         node.ParentNodeId = editNodeDto.ParentNodeId ?? node.ParentNodeId;
 
         dbContext.Nodes.Update(node);
@@ -64,14 +66,15 @@ public class NodeService(TreeDbContext dbContext) : INodeService
         await dbContext.SaveChangesAsync();
     }
     
-    private NodeDto MapNodeToDto(Node node)
+    private NodeDto MapNodeToDto(Node node, bool isReversed)
     {
         var nodeDto = new NodeDto
         {
             Id = node.Id,
             Name = node.Name,
             ParentNodeId = node.ParentNodeId,
-            Childrens = node.Childrens.Select(childNode => MapNodeToDto(childNode)).ToList()
+            Childrens = isReversed ? node.Childrens.Select(childNode => MapNodeToDto(childNode, isReversed)).OrderByDescending(child => child.Name).ToList() :
+                node.Childrens.Select(childNode => MapNodeToDto(childNode, isReversed)).OrderBy(child => child.Name).ToList()
         };
 
         return nodeDto;

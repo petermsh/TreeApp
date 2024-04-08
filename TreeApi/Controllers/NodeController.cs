@@ -9,9 +9,9 @@ namespace TreeApp.Controllers;
 public class NodeController(INodeService nodeService) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<List<NodeDto>>> GetNodes()
+    public async Task<ActionResult<List<NodeDto>>> GetNodes(bool isReversed)
     {
-        var nodes = await nodeService.GetNodes();
+        var nodes = await nodeService.GetNodes(isReversed);
 
         return Ok(nodes);
     }
@@ -21,7 +21,7 @@ public class NodeController(INodeService nodeService) : ControllerBase
     {
         await nodeService.AddNode(addNodeDto);
 
-        return Ok();
+        return NoContent();
     }
     
     [HttpPut]
@@ -29,14 +29,14 @@ public class NodeController(INodeService nodeService) : ControllerBase
     {
         await nodeService.EditNode(editNodeDto);
 
-        return Ok();
+        return NoContent();
     }
     
-    [HttpDelete]
+    [HttpDelete()]
     public async Task<IActionResult> DeleteNode(string name)
     {
         await nodeService.DeleteNode(name);
 
-        return Ok();
+        return NoContent();
     }
 }
