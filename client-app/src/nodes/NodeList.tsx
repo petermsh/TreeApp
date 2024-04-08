@@ -12,11 +12,16 @@ export default function NodeList({nodes, refreshNodes} : Props) {
 
     const [isOpenedAll, setIsOpenedAll] = useState(false);
     const [isReversed, setIsReversed] = useState(false);
+    const [draggedNode, setDraggedNode] = useState<string>("");
 
     useEffect(() => {
         refreshNodes(isReversed);
         console.log('isReversed changed:', isReversed);
     }, [isReversed]);
+    
+    const handleDragStart = async (nodeId: string) => {
+        setDraggedNode(nodeId);
+    }
     
     return(
         <Segment>
@@ -48,8 +53,14 @@ export default function NodeList({nodes, refreshNodes} : Props) {
                 </Button>
             </div>
             {nodes.map((n) => (
-                <Node key={n.id} node={n} isOpenedAll={isOpenedAll} isReversed={isReversed} refreshNodes={refreshNodes} />
+                <Node key={n.id} node={n}
+                      isOpenedAll={isOpenedAll}
+                      isReversed={isReversed}
+                      refreshNodes={refreshNodes}
+                      handleDragStart={handleDragStart}
+                      draggedNode={draggedNode} />
             ))}
+            <h4>Przeciągnij węzeł, aby go przenieść. Kliknij węzeł lewym przyciskiem myszy, aby rozwinąć, a prawym aby uruchomić menu kontekstowe</h4>
         </Segment>
     )
 }

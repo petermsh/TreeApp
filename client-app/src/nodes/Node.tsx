@@ -2,19 +2,22 @@
 import {useEffect, useState} from "react";
 import {Button, Icon, Segment} from "semantic-ui-react";
 import agent from "../agent/agent.ts";
+import '../styles/styles.css';
 
 interface Props {
     node: NodeDto,
     isOpenedAll: boolean,
     refreshNodes: (isReversed: boolean) => void,
-    isReversed: boolean
+    isReversed: boolean,
+    draggedNode: string,
+    handleDragStart: (nodeId: string) => void
 }
 interface CreateNodeDto {
     name: string;
     parentNodeId: string
 }
 
-const Node = ({ node, isOpenedAll, refreshNodes, isReversed } : Props) => {
+const Node = ({ node, isOpenedAll, refreshNodes, isReversed, handleDragStart, draggedNode } : Props) => {
 
     const [isOpened, setIsOpened] = useState(false);
     const [clicked, setClicked] = useState(false);
@@ -23,6 +26,7 @@ const Node = ({ node, isOpenedAll, refreshNodes, isReversed } : Props) => {
     const [newChildName, setNewChildName] = useState('');
     const [editing, setEditing] = useState(false);
     const [editedName, setEditedName] = useState(node.name);
+    
 
     useEffect(() => {
         const handleClick = () => setClicked(false);
@@ -76,6 +80,15 @@ const Node = ({ node, isOpenedAll, refreshNodes, isReversed } : Props) => {
         }
     }
 
+    const handleDrop = async (newParentNodeId : string) => {
+        await agent.Nodes.edit({id: draggedNode, parentNodeId: newParentNodeId})
+        refreshNodes(isReversed);
+    };
+    
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault(); 
+    };
+
     useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
             if (e.key === 'Enter' && addingChild && newChildName) {
@@ -94,10 +107,15 @@ const Node = ({ node, isOpenedAll, refreshNodes, isReversed } : Props) => {
     }, [addingChild, newChildName, editedName, editing]);
 
     return (
-        <>
+        <div className={"button-container"}>
             <Button
+                draggable
                 icon
+                className={"button"}
                 onClick={() => setIsOpened(!isOpened)}
+                onDragStart={() => handleDragStart(node.id)}
+                onDragOver={handleDragOver}
+                onDrop={() => handleDrop(node.id)}
                 onContextMenu={handleContextMenu}
             >
                 {isOpened || isOpenedAll ? <Icon name="folder open" /> : <Icon name="folder" />}
@@ -113,7 +131,7 @@ const Node = ({ node, isOpenedAll, refreshNodes, isReversed } : Props) => {
                 )}
             </Button>
             {clicked && (
-                <Segment top={points.y} left={points.x}>
+                <Segment top={points.y} left={points.x} style={{width: "auto" }}>
                     <Button icon onClick={() => setAddingChild(true)}><Icon name="plus" /></Button>
                     <Button icon onClick={handleEditNode}><Icon name="edit" /></Button>
                     <Button icon onClick={handleDeleteNode}><Icon name="trash" /></Button>
@@ -132,11 +150,17 @@ const Node = ({ node, isOpenedAll, refreshNodes, isReversed } : Props) => {
             {node.childrens && (isOpened || isOpenedAll) && (
                 node.childrens.map((subnode) => (
                     <div key={subnode.id} style={{ paddingLeft: "20px" }}>
-                        <Node node={subnode} isOpenedAll={isOpenedAll} isReversed={isReversed} refreshNodes={refreshNodes} />
+                        <Node node={subnode}
+                              isOpenedAll={isOpenedAll}
+                              isReversed={isReversed}
+                              refreshNodes={refreshNodes}
+                              handleDragStart={handleDragStart}
+                              draggedNode={draggedNode}
+                        />
                     </div>
                 ))
             )}
-        </>
+        </div>
     );
 };
 

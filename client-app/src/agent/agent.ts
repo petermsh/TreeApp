@@ -14,7 +14,7 @@ const Nodes = {
 
     delete: async (name: string) => axios.delete<CreateNodeDto>('http://localhost:5095/Node', {params: {name}})
         .catch((error) => {
-            console.error('Error adding node:', error);
+            console.error('Error deleting node:', error);
         }),
     
     list: async (isReversed: boolean) => axios.get<NodeDto[]>('http://localhost:5095/Node', {params: { isReversed }})

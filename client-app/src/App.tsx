@@ -1,4 +1,3 @@
-import './App.css'
 import {useEffect, useState} from "react";
 import NodeList from "./nodes/NodeList.tsx";
 import { NodeDto } from "./nodes/NodeDto";
